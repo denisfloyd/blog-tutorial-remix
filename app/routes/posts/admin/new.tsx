@@ -17,6 +17,7 @@ export const action = async ({ request }: ActionArgs) => {
     slug: slug ? null : "Slug is required",
     markdown: markdown ? null : "Markdown is required",
   };
+
   const hasErrors = Object.values(errors).some((errorMessage) => errorMessage);
   if (hasErrors) {
     return json(errors);
