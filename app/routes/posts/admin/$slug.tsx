@@ -49,7 +49,7 @@ export const loader = async ({ params }: LoaderArgs) => {
 
 const inputClassName = `w-full rounded border border-gray-500 px-2 py-1 text-lg`;
 
-export default function NewPost() {
+export default function EditPost() {
   const { post } = useLoaderData<typeof loader>();
   const errors = useActionData<typeof action>();
 
@@ -93,16 +93,16 @@ export default function NewPost() {
           {errors?.markdown ? (
             <em className="text-red-600">{errors.markdown}</em>
           ) : null}
+          <input
+            // id="markdown"
+            // rows={20}
+            type="text"
+            name="markdown"
+            className={`${inputClassName} font-mono`}
+            defaultValue={post.markdown}
+          />
         </label>
         <br />
-        <textarea
-          id="markdown"
-          rows={20}
-          name="markdown"
-          className={`${inputClassName} font-mono`}
-        >
-          {post.markdown}
-        </textarea>
       </p>
       <p className="text-right">
         <button
