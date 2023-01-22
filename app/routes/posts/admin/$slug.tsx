@@ -1,17 +1,29 @@
 import type { ActionArgs, ActionFunction, LoaderFunction } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
-import { Form, useActionData, useTransition } from "@remix-run/react";
+import {
+  Form,
+  useActionData,
+  useLoaderData,
+  useTransition,
+} from "@remix-run/react";
 import invariant from "tiny-invariant";
 
-import { createPost } from "~/models/post.server";
+import type { Post } from "~/models/post.server";
+import { createPost, getPost } from "~/models/post.server";
 import { requireAdminUser } from "~/session.server";
+
+type LoaderData = { post?: Post };
 
 export const loader: LoaderFunction = async ({ request, params }) => {
   await requireAdminUser(request);
   if (params.slug === "new") {
     return json({});
   }
-  return json({ post: null });
+  const post = await getPost(params.slug ?? "");
+  if (!post) {
+    throw new Response("Not Found", { status: 404 });
+  }
+  return json<LoaderData>({ post });
 };
 
 type ActionData =
@@ -22,7 +34,10 @@ type ActionData =
     }
   | undefined;
 
-export const action: ActionFunction = async ({ request, params }: ActionArgs) => {
+export const action: ActionFunction = async ({
+  request,
+  params,
+}: ActionArgs) => {
   await requireAdminUser(request);
   const formData = await request.formData();
 
@@ -59,20 +74,21 @@ export const action: ActionFunction = async ({ request, params }: ActionArgs) =>
 const inputClassName = `w-full rounded border border-gray-500 px-2 py-1 text-lg`;
 
 export default function NewPost() {
+  const data = useLoaderData() as LoaderData;
   const errors = useActionData() as ActionData;
 
   const transition = useTransition();
   const isCreating = Boolean(transition.submission);
 
   return (
-    <Form method="post">
+    <Form method="post" key={data.post?.slug ?? "new"}>
       <p>
         <label>
           Post Title:{" "}
           {errors?.title ? (
             <em className="text-red-600">{errors.title}</em>
           ) : null}
-          <input type="text" name="title" className={inputClassName} />
+          <input type="text" name="title" className={inputClassName} defaultValue={data.post?.title}/>
         </label>
       </p>
       <p>
@@ -81,7 +97,7 @@ export default function NewPost() {
           {errors?.slug ? (
             <em className="text-red-600">{errors.slug}</em>
           ) : null}
-          <input type="text" name="slug" className={inputClassName} />
+          <input type="text" name="slug" className={inputClassName} defaultValue={data.post?.slug} />
         </label>
       </p>
       <p>
@@ -97,6 +113,7 @@ export default function NewPost() {
           rows={20}
           name="markdown"
           className={`${inputClassName} font-mono`}
+          defaultValue={data.post?.markdown}
         />
       </p>
       <p className="text-right">
