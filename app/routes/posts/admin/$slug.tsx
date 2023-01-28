@@ -9,8 +9,7 @@ import {
 import invariant from "tiny-invariant";
 
 import type { Post } from "~/models/post.server";
-import { updatePost } from "~/models/post.server";
-import { createPost, getPost } from "~/models/post.server";
+import { createPost, getPost, updatePost, deletePost } from "~/models/post.server";
 import { requireAdminUser } from "~/session.server";
 
 type LoaderData = { post?: Post };
@@ -41,6 +40,12 @@ export const action: ActionFunction = async ({
 }: ActionArgs) => {
   await requireAdminUser(request);
   const formData = await request.formData();
+  const intent = formData.get("intent");
+
+  if (intent === "delete") {
+    await deletePost(params.slug);
+    return redirect("/posts/admin");
+  }
 
   const title = formData.get("title");
   const slug = formData.get("slug");
@@ -81,6 +86,7 @@ export default function NewPost() {
   const transition = useTransition();
   const isCreating = transition.submission?.formData.get("intent") === "create";
   const isUpdating = transition.submission?.formData.get("intent") === "update";
+  const isDeleting = transition.submission?.formData.get("intent") === "delete";
   const isNewPost = !data.post;
 
   return (
@@ -129,7 +135,18 @@ export default function NewPost() {
           defaultValue={data.post?.markdown}
         />
       </p>
-      <p className="text-right">
+      <div className="flex justify-end gap-4">
+        {isNewPost ? null : (
+          <button
+            type="submit"
+            name="intent"
+            value="delete"
+            className="rounded bg-red-500 py-2 px-4 text-white hover:bg-red-600 focus:bg-red-400 disabled:bg-red-300"
+            disabled={isDeleting}
+          >
+            {isDeleting ? "Deleting..." : "Delete"}
+          </button>
+        )}
         <button
           type="submit"
           name="intent"
@@ -140,7 +157,7 @@ export default function NewPost() {
           {isNewPost ? (isCreating ? "Creating..." : "Create Post") : null}
           {isNewPost ? null : isUpdating ? "Updating..." : "Update"}
         </button>
-      </p>
+      </div>
     </Form>
   );
 }
