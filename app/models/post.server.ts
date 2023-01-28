@@ -27,7 +27,8 @@ export async function createPost(
 }
 
 export async function updatePost(
+  slug: string,
   post: Pick<Post, "slug" | "title" | "markdown">
 ) {
-  return prisma.post.update({ where: { slug: post.slug }, data: post });
+  return prisma.post.update({ where: { slug }, data: post });
 }
