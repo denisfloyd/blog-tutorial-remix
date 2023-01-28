@@ -16,6 +16,7 @@ type LoaderData = { post?: Post };
 
 export const loader: LoaderFunction = async ({ request, params }) => {
   await requireAdminUser(request);
+  invariant(params.slug, "slug is required");
   if (params.slug === "new") {
     return json({});
   }
@@ -39,6 +40,7 @@ export const action: ActionFunction = async ({
   params,
 }: ActionArgs) => {
   await requireAdminUser(request);
+  invariant(params.slug, "slug is required");
   const formData = await request.formData();
   const intent = formData.get("intent");
 
