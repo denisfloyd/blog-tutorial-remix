@@ -27,7 +27,7 @@ export const meta: MetaFunction = () => ({
 type LoaderData = {
   user: Awaited<ReturnType<typeof getUser>>;
   ENV: ReturnType<typeof getEnv>;
-}
+};
 
 export async function loader({ request }: LoaderArgs) {
   return json<LoaderData>({
